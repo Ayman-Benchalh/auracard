@@ -1,0 +1,70 @@
+{
+    "$schema": "https://getcomposer.org/schema.json",
+    "name": "auracard/aura-card",
+    "type": "project",
+    "description": "AURA CARD — Premium NFC Smart Business Card & Digital Professional Profile SaaS Platform",
+    "keywords": ["nfc", "business-card", "digital-profile", "saas", "laravel", "inertia", "react"],
+    "license": "proprietary",
+    "require": {
+        "php": "^8.3",
+        "bacon/bacon-qr-code": "^3.0",
+        "filament/filament": "^5.0",
+        "inertiajs/inertia-laravel": "^3.0",
+        "laravel/framework": "^13.0",
+        "laravel/sanctum": "^4.0",
+        "laravel/tinker": "^3.0",
+        "livewire/livewire": "^4.0",
+        "predis/predis": "^3.6"
+    },
+    "require-dev": {
+        "fakerphp/faker": "^1.23",
+        "mockery/mockery": "^1.6",
+        "nunomaduro/collision": "^8.1",
+        "pestphp/pest": "^4.0",
+        "pestphp/pest-plugin-laravel": "^4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "Database\\Factories\\": "database/factories/",
+            "Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi",
+            "@php artisan filament:upgrade"
+        ],
+        "post-update-cmd": [
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+        ],
+        "post-root-package-install": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ],
+        "post-create-project-cmd": [
+            "@php artisan key:generate --ansi"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "dont-discover": []
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "php-http/discovery": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

@@ -1,0 +1,272 @@
+<?php
+
+namespace App\Models;
+
+use App\Enums\AccountStatus;
+use App\Enums\RoleName;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+
+class User extends Authenticatable implements MustVerifyEmail, FilamentUser
+{
+    use HasFactory, HasUlids, Notifiable;
+
+    protected $fillable = [
+        'name',
+        'email',
+        'phone',
+        'password',
+        'account_status',
+        'locale',
+        'email_verified_at',
+        'two_factor_secret',
+        'two_factor_confirmed_at',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+        'two_factor_secret',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'account_status' => AccountStatus::class,
+            'two_factor_confirmed_at' => 'datetime',
+        ];
+    }
+
+    /**
+     * RBAC Roles Relationship
+     */
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class, 'user_roles', 'user_id', 'role_id');
+    }
+
+    /**
+     * Check if user has a specific role by name or RoleName enum
+     */
+    public function hasRole(RoleName|string $role): bool
+    {
+        $roleName = $role instanceof RoleName ? $role->value : $role;
+        return $this->roles->contains('name', $roleName);
+    }
+
+    /**
+     * Check if user has any of the specified roles
+     */
+    public function hasAnyRole(array $roles): bool
+    {
+        foreach ($roles as $role) {
+            if ($this->hasRole($role)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Assign a role to the user
+     */
+    public function assignRole(RoleName|string|Role $role): void
+    {
+        $roleModel = $role instanceof Role
+            ? $role
+            : Role::where('name', $role instanceof RoleName ? $role->value : $role)->firstOrFail();
+
+        $this->roles()->syncWithoutDetaching([$roleModel->id]);
+    }
+
+    /**
+     * Remove a role from the user
+     */
+    public function removeRole(RoleName|string|Role $role): void
+    {
+        $roleModel = $role instanceof Role
+            ? $role
+            : Role::where('name', $role instanceof RoleName ? $role->value : $role)->firstOrFail();
+
+        $this->roles()->detach($roleModel->id);
+    }
+
+    /**
+     * Check if user has a specific permission through their roles
+     */
+    public function hasPermission(string $permissionName): bool
+    {
+        // Super admin has all permissions
+        if ($this->hasRole(RoleName::SUPER_ADMIN)) {
+            return true;
+        }
+
+        return $this->roles->flatMap->permissions->contains('name', $permissionName);
+    }
+
+    /**
+     * Verify account is active and not suspended or disabled
+     */
+    public function isActive(): bool
+    {
+        return $this->account_status === AccountStatus::ACTIVE;
+    }
+
+    /**
+     * Filament Panel Authorization
+     */
+    public function canAccessPanel(Panel $panel): bool
+    {
+        if ($panel->getId() === 'admin') {
+            return $this->isActive() && $this->hasAnyRole([
+                RoleName::SUPER_ADMIN,
+                RoleName::ADMIN,
+                RoleName::SUPPORT,
+            ]);
+        }
+
+        return true;
+    }
+
+    /**
+     * NFC Cards owned by the user
+     */
+    public function cards(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(NfcCard::class, 'user_id');
+    }
+
+    /**
+     * Batches created by this user
+     */
+    public function cardBatches(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(NfcCardBatch::class, 'created_by_user_id');
+    }
+
+    /**
+     * Entitlements owned by this user
+     */
+    public function cardEntitlements(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(CardEntitlement::class, 'user_id');
+    }
+
+    /**
+     * Historical card claims by the user
+     */
+    public function cardClaims(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(CardClaim::class, 'user_id');
+    }
+
+    /**
+     * Card transfers sent from this user
+     */
+    public function sentCardTransfers(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(CardTransfer::class, 'from_user_id');
+    }
+
+    /**
+     * Card transfers received by this user
+     */
+    public function receivedCardTransfers(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(CardTransfer::class, 'to_user_id');
+    }
+
+    /**
+     * Audit log records generated by this user
+     */
+    public function auditLogs(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(AuditLog::class, 'actor_id');
+    }
+
+    /**
+     * Profiles owned by this user
+     */
+    public function profiles(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Profile::class, 'user_id');
+    }
+
+    /**
+     * Primary profile (tied to eligible physical card)
+     */
+    public function primaryProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Profile::class, 'user_id')->latestOfMany();
+    }
+
+    /**
+     * Ledger transactions for edit modification credits
+     */
+    public function editCreditTransactions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(EditCreditTransaction::class, 'user_id');
+    }
+
+    /**
+     * Current edit credit balance
+     */
+    public function getEditCreditBalanceAttribute(): int
+    {
+        return (int) $this->editCreditTransactions()->sum('amount');
+    }
+
+    /**
+     * Subscriptions for this user
+     */
+    public function subscriptions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Subscription::class, 'user_id');
+    }
+
+    /**
+     * Currently active subscription
+     */
+    public function activeSubscription(): ?Subscription
+    {
+        return $this->subscriptions()
+            ->where('status', \App\Enums\SubscriptionStatus::ACTIVE->value)
+            ->where(function ($q) {
+                $q->whereNull('ends_at')->orWhere('ends_at', '>', now());
+            })
+            ->latest('starts_at')
+            ->first();
+    }
+
+    /**
+     * Payment verification requests submitted by this user
+     */
+    public function paymentRequests(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PaymentRequest::class, 'user_id');
+    }
+
+    /**
+     * Commercial orders placed by this user
+     */
+    public function orders(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\Order::class);
+    }
+
+    /**
+     * Commercial package purchases owned by this user
+     */
+    public function packagePurchases(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\PackagePurchase::class);
+    }
+}

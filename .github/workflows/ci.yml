@@ -1,0 +1,89 @@
+name: AuraCard CI & Quality Gate
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  test-and-build:
+    name: Tests, Typecheck, Build & Security Audit
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: auracard_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo, pdo_mysql, gd, imagick, fileinfo, bcmath, intl, zip
+          coverage: none
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: /tmp/composer-cache
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install Composer Dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Install NPM Dependencies
+        run: npm ci
+
+      - name: Prepare Environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Run Database Migrations
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: auracard_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: php artisan migrate --force
+
+      - name: Execute PHP Test Suite (Pest / PHPUnit)
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: auracard_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: php artisan test --colors=always
+
+      - name: Frontend TypeScript Typecheck
+        run: npm run typecheck
+
+      - name: Production Asset Build
+        run: npm run build
+
+      - name: Security Audit (Composer)
+        run: composer audit
+
+      - name: Security Audit (NPM)
+        run: npm audit --audit-level=high
