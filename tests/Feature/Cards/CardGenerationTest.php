@@ -68,3 +68,30 @@ test('card batch can generate cards with unique serials and unique token hashes'
     expect($serials->unique())->toHaveCount(10)
         ->and($tokenHashes->unique())->toHaveCount(10);
 });
+
+test('card batch service generates batch with correct defaults and relations', function () {
+    $batchService = app(\App\Services\CardBatchService::class);
+
+    $results = $batchService->generateBatch(
+        batchNumber: 'BATCH-SERVICE-TEST-001',
+        quantity: 5,
+        cardType: 'standard',
+        initialFreeCredits: 3,
+        creator: $this->admin
+    );
+
+    expect($results)->toHaveCount(5);
+
+    $batch = NfcCardBatch::where('batch_code', 'BATCH-SERVICE-TEST-001')->first();
+    expect($batch)->not->toBeNull()
+        ->and($batch->quantity)->toBe(5)
+        ->and($batch->cards)->toHaveCount(5);
+
+    foreach ($results as $result) {
+        expect($result->card->batch_id)->toBe($batch->id)
+            ->and($result->card->status)->toBe(CardStatus::INVENTORY)
+            ->and($result->rawPublicToken)->not->toBeEmpty()
+            ->and($result->rawClaimCode)->not->toBeEmpty();
+    }
+});
+

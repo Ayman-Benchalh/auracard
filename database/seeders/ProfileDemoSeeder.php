@@ -11,9 +11,9 @@ use App\Enums\CardEntitlementStatus;
 use App\Enums\CardStatus;
 use App\Enums\CardType;
 use App\Enums\ProfileBlockType;
-use App\Models\CardBatch;
 use App\Models\CardEntitlement;
 use App\Models\NfcCard;
+use App\Models\NfcCardBatch;
 use App\Models\ProfessionType;
 use App\Models\Profile;
 use App\Models\Template;
@@ -45,10 +45,10 @@ class ProfileDemoSeeder extends Seeder
             ->first();
 
         if (! $entitlement) {
-            $batch = CardBatch::firstOrCreate(
+            $batch = NfcCardBatch::firstOrCreate(
                 ['batch_code' => 'DEMO-BATCH-01'],
                 [
-                    'card_type' => CardType::MATTE_BLACK,
+                    'card_model' => CardType::MATTE_BLACK->value,
                     'quantity' => 10,
                     'notes' => 'Demo batch',
                 ]
