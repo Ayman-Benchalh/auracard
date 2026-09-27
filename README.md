@@ -1,7 +1,8 @@
 # AURA CARD — Premium NFC Smart Business Card & Digital Profile Platform
 
 <div align="center">
-  <p><strong>Next-Generation Physical NFC Smart Cards & Modular Professional Digital Profiles</strong></p>
+  <img src="public/images/auracard-logo.svg" alt="AURA CARD Logo" width="260" />
+  <p style="margin-top: 1rem;"><strong>Next-Generation Physical NFC Smart Cards & Modular Professional Digital Profiles</strong></p>
   <p>Engineered for Commercial SaaS Operations on Managed cPanel, High-Throughput VPS & Cloud Infrastructure</p>
   <p><em>PHP 8.3+ • Laravel 13 • Inertia 3 • React 19 • TypeScript • Tailwind CSS 4 • Filament 5 • Redis • Docker</em></p>
 </div>
