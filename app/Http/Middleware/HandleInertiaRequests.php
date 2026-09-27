@@ -60,10 +60,16 @@ class HandleInertiaRequests extends Middleware
                 'whatsapp' => config('auracard.brand.support_whatsapp'),
                 'email' => config('auracard.brand.support_email'),
             ],
+            'socialAuth' => [
+                'google' => (bool) config('services.google.enabled', true),
+                'facebook' => (bool) config('services.facebook.enabled', true),
+                'instagram' => (bool) config('services.instagram.enabled', false),
+            ],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
                 'status' => fn () => $request->session()->get('status'),
+                'info' => fn () => $request->session()->get('info'),
             ],
         ]);
     }

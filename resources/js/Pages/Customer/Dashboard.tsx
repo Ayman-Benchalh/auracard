@@ -15,7 +15,9 @@ import {
     ArrowRight,
     Lock,
     Shield,
-    Calendar,
+    ExternalLink,
+    Sliders,
+    Eye,
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -39,12 +41,25 @@ interface DashboardProps {
         has_entitlement: boolean;
         total_cards: number;
     } | null;
-    profileSummary: null;
-    subscriptionSummary: null;
+    profileSummary: {
+        id: string;
+        slug: string;
+        display_name: string;
+        status: string;
+        current_version: number;
+        published_at: string | null;
+        public_url: string;
+    } | null;
+    subscriptionSummary: any | null;
     editCreditsBalance: number;
 }
 
-export default function Dashboard({ account, cardSummary, editCreditsBalance }: DashboardProps) {
+export default function Dashboard({
+    account,
+    cardSummary,
+    profileSummary,
+    editCreditsBalance,
+}: DashboardProps) {
     const { t, isRtl } = useTranslation();
 
     const formattedDate = new Date(account.created_at).toLocaleDateString(
@@ -57,18 +72,18 @@ export default function Dashboard({ account, cardSummary, editCreditsBalance }: 
             <Head title={t('dashboard')} />
 
             <div className="space-y-8">
-                {/* Welcome Banner */}
-                <div className="relative overflow-hidden rounded-3xl p-8 bg-gradient-to-r from-[#6C5CE7] to-[#14B8A6] text-white shadow-xl shadow-[#6C5CE7]/20">
+                {/* Welcome Executive Banner */}
+                <div className="relative overflow-hidden rounded-3xl p-6 sm:p-8 bg-gradient-to-r from-[#6C5CE7] to-[#14B8A6] text-white shadow-xl shadow-[#6C5CE7]/15">
                     <div className="relative z-10 max-w-2xl space-y-2">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-bold backdrop-blur-xs">
                             <Sparkles className="w-3.5 h-3.5" />
-                            <span>AURA CARD Customer Portal</span>
+                            <span>AURA CARD Executive Portal</span>
                         </div>
                         <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
                             {t('welcome')}, {account.name}
                         </h2>
-                        <p className="text-white/80 text-sm">
-                            Manage your NFC cards, digital identity profiles, and view your account security.
+                        <p className="text-white/80 text-xs sm:text-sm">
+                            Gérez vos cartes physiques NFC, vos profils digitaux interactifs et vos paramètres de sécurité.
                         </p>
                     </div>
 
@@ -77,10 +92,10 @@ export default function Dashboard({ account, cardSummary, editCreditsBalance }: 
                     </div>
                 </div>
 
-                {/* Account Status & Foundation Metrics Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Account Status Card */}
-                    <Card className="space-y-3">
+                {/* Key Metrics Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {/* Account Status */}
+                    <Card className="p-5 space-y-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#11182A]">
                         <div className="flex items-center justify-between">
                             <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                                 {t('account_status')}
@@ -96,18 +111,18 @@ export default function Dashboard({ account, cardSummary, editCreditsBalance }: 
                                         ? 'warning'
                                         : 'danger'
                                 }
-                                className="text-sm px-3 py-1"
+                                className="text-xs px-2.5 py-1"
                             >
                                 {t(account.status)}
                             </Badge>
                         </div>
                         <p className="text-xs text-slate-500 dark:text-slate-400">
-                            Member since {formattedDate}
+                            Membre depuis le {formattedDate}
                         </p>
                     </Card>
 
-                    {/* Email Verification Card */}
-                    <Card className="space-y-3">
+                    {/* Email Verification */}
+                    <Card className="p-5 space-y-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#11182A]">
                         <div className="flex items-center justify-between">
                             <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                                 {t('verify_email')}
@@ -120,16 +135,19 @@ export default function Dashboard({ account, cardSummary, editCreditsBalance }: 
                         </div>
                         <div>
                             {account.is_verified ? (
-                                <Badge variant="success" className="text-sm px-3 py-1">
+                                <Badge variant="success" className="text-xs px-2.5 py-1">
                                     {t('verified')}
                                 </Badge>
                             ) : (
-                                <div className="space-y-2">
-                                    <Badge variant="warning" className="text-sm px-3 py-1">
+                                <div className="space-y-1.5">
+                                    <Badge variant="warning" className="text-xs px-2.5 py-1">
                                         {t('unverified')}
                                     </Badge>
-                                    <Link href="/verify-email" className="block text-xs font-bold text-[#6C5CE7] hover:underline">
-                                        Verify your email now &rarr;
+                                    <Link
+                                        href="/verify-email"
+                                        className="block text-xs font-bold text-[#6C5CE7] hover:underline"
+                                    >
+                                        Vérifier mon e-mail &rarr;
                                     </Link>
                                 </div>
                             )}
@@ -137,8 +155,8 @@ export default function Dashboard({ account, cardSummary, editCreditsBalance }: 
                         <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{account.email}</p>
                     </Card>
 
-                    {/* Edit Credits Balance Card */}
-                    <Card className="space-y-3">
+                    {/* Edit Credits Balance */}
+                    <Card className="p-5 space-y-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#11182A]">
                         <div className="flex items-center justify-between">
                             <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                                 {t('free_credits')}
@@ -147,40 +165,42 @@ export default function Dashboard({ account, cardSummary, editCreditsBalance }: 
                         </div>
                         <div className="text-2xl font-black text-slate-900 dark:text-white">
                             {editCreditsBalance}{' '}
-                            <span className="text-xs font-semibold text-slate-400 uppercase">Credits</span>
+                            <span className="text-xs font-semibold text-slate-400 uppercase">Crédits</span>
                         </div>
                         <p className="text-xs text-slate-500 dark:text-slate-400">
-                            Granted automatically when claiming an eligible NFC card
+                            Publication de révisions de profils (brouillons illimités)
                         </p>
                     </Card>
                 </div>
 
                 {/* Modules Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* NFC Card Section (Phase 2 Active) */}
-                    <Card className="space-y-4">
+                    {/* NFC Card Section */}
+                    <Card className="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#11182A] space-y-4">
                         <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-[#6C5CE7]/15 text-[#6C5CE7] flex items-center justify-center">
+                                <div className="w-10 h-10 rounded-xl bg-[#6C5CE7]/10 text-[#6C5CE7] flex items-center justify-center">
                                     <Smartphone className="w-5 h-5" />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-base text-slate-900 dark:text-white">
                                         {t('my_card')}
                                     </h3>
-                                    <p className="text-xs text-slate-500">Physical NFC Hardware Connection</p>
+                                    <p className="text-xs text-slate-500">Matériel physique NFC appairé</p>
                                 </div>
                             </div>
                             <Badge variant={cardSummary ? 'success' : 'neutral'}>
-                                {cardSummary ? `${cardSummary.total_cards} Linked` : 'Phase 2 Live'}
+                                {cardSummary ? `${cardSummary.total_cards} Active${cardSummary.total_cards > 1 ? 's' : ''}` : 'Non liée'}
                             </Badge>
                         </div>
 
                         {cardSummary ? (
-                            <div className="space-y-4 bg-slate-50 dark:bg-[#1E2642]/50 rounded-2xl p-5 border border-slate-200 dark:border-slate-700/60">
+                            <div className="space-y-4 bg-slate-50 dark:bg-slate-900/60 rounded-xl p-4 sm:p-5 border border-slate-200 dark:border-slate-800">
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-0.5">
-                                        <span className="text-xs text-slate-400 font-mono block">Serial Number</span>
+                                        <span className="text-[10px] text-slate-400 font-mono block uppercase">
+                                            Numéro de Série
+                                        </span>
                                         <span className="text-sm font-mono font-bold text-slate-900 dark:text-white">
                                             {cardSummary.serial_number}
                                         </span>
@@ -190,32 +210,32 @@ export default function Dashboard({ account, cardSummary, editCreditsBalance }: 
                                     </Badge>
                                 </div>
 
-                                <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-slate-700/60 text-xs">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-200 dark:border-slate-800 text-xs">
                                     <span className="text-slate-500 capitalize">
-                                        Type: {cardSummary.card_type.replace('_', ' ')}
+                                        Type : {cardSummary.card_type.replace('_', ' ')}
                                     </span>
                                     <Link
                                         href="/cards"
-                                        className="text-[#6C5CE7] hover:underline font-bold inline-flex items-center gap-1"
+                                        className="text-[#6C5CE7] dark:text-[#818CF8] hover:underline font-bold inline-flex items-center gap-1"
                                     >
-                                        <span>Manage NFC Cards &rarr;</span>
+                                        <span>Gérer mes cartes NFC &rarr;</span>
                                     </Link>
                                 </div>
                             </div>
                         ) : (
-                            <div className="py-6 text-center space-y-3 bg-slate-50 dark:bg-[#1E2642]/50 rounded-2xl p-6 border border-dashed border-slate-200 dark:border-slate-700">
+                            <div className="py-6 text-center space-y-3 bg-slate-50 dark:bg-slate-900/60 rounded-xl p-6 border border-dashed border-slate-200 dark:border-slate-800">
                                 <CreditCard className="w-10 h-10 text-slate-400 mx-auto" />
                                 <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                                    No NFC card claimed yet
+                                    Aucune carte NFC activée
                                 </p>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
-                                    Once you receive your physical AURA CARD, enter your activation code to link it to your account.
+                                    Activez votre carte reçue grâce à son code d’activation confidentiel.
                                 </p>
                                 <div className="pt-2">
                                     <Link href="/cards/claim">
-                                        <Button size="sm" className="inline-flex items-center gap-1.5">
+                                        <Button size="sm" className="inline-flex items-center gap-1.5 min-h-[40px]">
                                             <Sparkles className="w-3.5 h-3.5" />
-                                            <span>Activate Your Card</span>
+                                            <span>Activer ma carte</span>
                                         </Button>
                                     </Link>
                                 </div>
@@ -223,32 +243,80 @@ export default function Dashboard({ account, cardSummary, editCreditsBalance }: 
                         )}
                     </Card>
 
-                    {/* Digital Profile Section (Phase 3) */}
-                    <Card className="space-y-4">
+                    {/* Digital Profile Section */}
+                    <Card className="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#11182A] space-y-4">
                         <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-[#14B8A6]/15 text-[#14B8A6] flex items-center justify-center">
+                                <div className="w-10 h-10 rounded-xl bg-[#14B8A6]/10 text-[#14B8A6] flex items-center justify-center">
                                     <User className="w-5 h-5" />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-base text-slate-900 dark:text-white">
                                         {t('my_profile')}
                                     </h3>
-                                    <p className="text-xs text-slate-500">Digital Identity & Modular Blocks</p>
+                                    <p className="text-xs text-slate-500">Profil digital interactif</p>
                                 </div>
                             </div>
-                            <Badge variant="neutral">Phase 3 Engine</Badge>
+                            <Badge variant={profileSummary ? (profileSummary.status === 'published' ? 'success' : 'warning') : 'neutral'}>
+                                {profileSummary ? profileSummary.status : 'Non créé'}
+                            </Badge>
                         </div>
 
-                        <div className="py-6 text-center space-y-3 bg-slate-50 dark:bg-[#1E2642]/50 rounded-2xl p-6 border border-dashed border-slate-200 dark:border-slate-700">
-                            <Sparkles className="w-10 h-10 text-slate-400 mx-auto" />
-                            <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                                Profile Builder Ready for Activation
-                            </p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
-                                The modular 12-block builder will be configured during Phase 3 with instant vCard and QR code export.
-                            </p>
-                        </div>
+                        {profileSummary ? (
+                            <div className="space-y-4 bg-slate-50 dark:bg-slate-900/60 rounded-xl p-4 sm:p-5 border border-slate-200 dark:border-slate-800">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                                            {profileSummary.display_name}
+                                        </h4>
+                                        <p className="text-xs font-mono text-slate-400">
+                                            /p/{profileSummary.slug}
+                                        </p>
+                                    </div>
+                                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                                        v{profileSummary.current_version}
+                                    </span>
+                                </div>
+
+                                <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
+                                    <Link href={`/profile/${profileSummary.id}/builder`} className="flex-1 min-w-[120px]">
+                                        <Button size="sm" variant="primary" className="w-full min-h-[40px] text-xs font-semibold">
+                                            <Sliders className="w-3.5 h-3.5 me-1.5" />
+                                            <span>Éditeur de Profil</span>
+                                        </Button>
+                                    </Link>
+                                    <a
+                                        href={profileSummary.public_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex-1 min-w-[120px]"
+                                    >
+                                        <Button size="sm" variant="outline" className="w-full min-h-[40px] text-xs font-semibold">
+                                            <ExternalLink className="w-3.5 h-3.5 me-1.5" />
+                                            <span>Voir Profil Public</span>
+                                        </Button>
+                                    </a>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="py-6 text-center space-y-3 bg-slate-50 dark:bg-slate-900/60 rounded-xl p-6 border border-dashed border-slate-200 dark:border-slate-800">
+                                <Sparkles className="w-10 h-10 text-slate-400 mx-auto" />
+                                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                                    Aucun profil digital configuré
+                                </p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+                                    Créez votre page professionnelle en 2 minutes avec vos blocs de contact et liens.
+                                </p>
+                                <div className="pt-2">
+                                    <Link href="/profile/create">
+                                        <Button size="sm" variant="secondary" className="inline-flex items-center gap-1.5 min-h-[40px]">
+                                            <User className="w-3.5 h-3.5" />
+                                            <span>Créer mon profil</span>
+                                        </Button>
+                                    </Link>
+                                </div>
+                            </div>
+                        )}
                     </Card>
                 </div>
             </div>

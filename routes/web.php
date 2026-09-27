@@ -52,6 +52,16 @@ Route::middleware('guest')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
+| Social OAuth Authentication Routes (Google, Facebook, Instagram)
+|--------------------------------------------------------------------------
+*/
+Route::get('auth/{provider}/redirect', [\App\Http\Controllers\Auth\SocialAuthController::class, 'redirect'])
+    ->name('auth.social.redirect');
+Route::get('auth/{provider}/callback', [\App\Http\Controllers\Auth\SocialAuthController::class, 'callback'])
+    ->name('auth.social.callback');
+
+/*
+|--------------------------------------------------------------------------
 | Authenticated Customer Routes (Protected with active.user & auth)
 |--------------------------------------------------------------------------
 */

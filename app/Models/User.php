@@ -269,4 +269,12 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
     {
         return $this->hasMany(\App\Models\PackagePurchase::class);
     }
+
+    /**
+     * Linked OAuth social accounts (Google, Facebook, Instagram)
+     */
+    public function socialAccounts(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\SocialAccount::class);
+    }
 }
