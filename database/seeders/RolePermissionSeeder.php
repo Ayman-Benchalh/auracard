@@ -121,7 +121,11 @@ class RolePermissionSeeder extends Seeder
 
         // Customer gets zero admin permissions
 
-        // 4. Create Development Baseline Users (Local Development Seeders)
+        // 4. Create Development Baseline Users (Local Development Seeders ONLY - Strictly prohibited in production)
+        if (app()->isProduction()) {
+            return;
+        }
+
         $usersData = [
             [
                 'name' => 'Super Administrator',

@@ -11,15 +11,22 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // 1. Core catalog and security seeders (Always executed)
         $this->call([
             RolePermissionSeeder::class,
-            NfcCardDemoSeeder::class,
             ProfessionTypeSeeder::class,
             TemplateSeeder::class,
             ThemeSeeder::class,
-            ProfileDemoSeeder::class,
             CommercialSeeder::class,
             CommercialPackageSeeder::class,
         ]);
+
+        // 2. Development baseline demo data (Never executed in production)
+        if (! app()->isProduction()) {
+            $this->call([
+                NfcCardDemoSeeder::class,
+                ProfileDemoSeeder::class,
+            ]);
+        }
     }
 }

@@ -25,6 +25,10 @@ class ProfileDemoSeeder extends Seeder
 {
     public function run(): void
     {
+        if (app()->isProduction()) {
+            return;
+        }
+
         $customer = User::where('email', 'customer@auracard.ma')->first();
         if (! $customer) {
             return;

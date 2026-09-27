@@ -19,6 +19,10 @@ class NfcCardDemoSeeder extends Seeder
      */
     public function run(): void
     {
+        if (app()->isProduction()) {
+            return;
+        }
+
         $customer = User::where('email', 'customer@auracard.ma')->first();
         $admin = User::where('email', 'superadmin@auracard.ma')->first();
 

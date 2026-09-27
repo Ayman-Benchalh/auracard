@@ -346,4 +346,6 @@ Screenshots of the verified Release Candidate interface are located in [docs/scr
 
 ## 📄 License & Proprietary Rights
 
-The AURA CARD SaaS platform and hardware firmware integration specifications are proprietary commercial software. All rights reserved.
+The AURA CARD SaaS platform, custom artwork, vector branding, and hardware firmware integration specifications are **Proprietary Commercial Software. All rights reserved.**
+
+This repository is published publicly for **portfolio demonstration, technical evaluation, and architectural review** purposes only. No open-source license (such as MIT, Apache, or GPL) is granted. Unauthorized copying, modification, redistribution, or commercial/private deployment of this software without prior written permission from the copyright owner is strictly prohibited.
